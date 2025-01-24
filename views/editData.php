@@ -24,6 +24,11 @@ if (isset($_GET['user_id'])) {
     if ($userData) {
         // set data in user field}
         $userData['hobbies'] = explode(',', $userData['hobbies']);
+        $mfilesString = trim($userData['mfile'], '"');
+
+        // Split the string into an array of file names
+        $mfiles = explode(',', $mfilesString);
+?>
 
 ?>
 
@@ -100,6 +105,17 @@ if (isset($_GET['user_id'])) {
                 <label for="mfile">Multiple Files :</label>
                 <input type="file" multiple name="mfile[]" id="mfile">
                 <span class="error">* <?php echo $errors["mfileErr"] ?? ''; ?></span>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <?php foreach ($mfiles as $file): ?>
+                        <?php if (file_exists("../uploads/" . htmlspecialchars($file))): ?>
+                            <div style="text-align: center;">
+                                <img src="../uploads/<?= htmlspecialchars($file) ?>" alt="<?= htmlspecialchars($file) ?>" style="max-width: 150px; max-height: 150px; object-fit: cover; border: 1px solid #ccc; margin-bottom: 10px;">
+                            </div>
+                        <?php else: ?>
+                            <p>File not found: <?= htmlspecialchars($file) ?></p>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
                 <br><br>
 
                 <label for="month">Month :</label>

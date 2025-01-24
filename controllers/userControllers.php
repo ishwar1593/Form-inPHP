@@ -277,15 +277,9 @@ class UserController
                             echo "Failed to upload one or more files.";
                             return;
                         }
-                    } else {
-                        echo "Invalid file upload.";
-                        return;
-                    }
+                    } 
                 }
-            } else {
-                echo "No files uploaded.";
-                return;
-            }
+            } 
     
             // Convert uploaded file paths array into a comma-separated string for database storage
             $mfile_paths_string = implode(',', $mfile_paths);
