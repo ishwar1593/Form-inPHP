@@ -138,6 +138,13 @@ class UserController
             $this->formData["country"] = $this->test_input($formData["country"]);
         }
 
+        // Handle editor content validation (optional)
+        if (empty($formData["editorContent"])) {
+            $this->errors["editorContentErr"] = "Content cannot be empty"; // Only if required
+        } else {
+            $this->formData["editorContent"] = $this->test_input($formData["editorContent"]);
+        }
+
         return count($this->errors) === 0;
     }
 
@@ -213,6 +220,7 @@ class UserController
                     $this->formData['website'],
                     $this->formData['week'],
                     $this->formData['country'],
+                    $this->formData['editorContent'] // Optional field
                 );
 
                 if ($userId) {
@@ -227,40 +235,44 @@ class UserController
             }
         }
     }
+
     public function handleEditFormSubmit($userId, $formData)
     {
         if (!empty($formData) && $userId) {
             // Extract and validate form data
-            $name = $formData['name'] ?? null;
-            $email = $formData['email'] ?? null;
-            $gender = $formData['gender'] ?? null;
+            $name = $this->test_input($formData['name']) ?? null;
+            $email = $this->test_input($formData['email']) ?? null;
+            $gender = $this->test_input($formData['gender']) ?? null;
             $hobbies = isset($formData['hobbies']) ? implode(',', $formData['hobbies']) : null;
-            $fav_number = $formData['fav_number'] ?? null;
-            $fav_color = $formData['fav_color'] ?? null;
-            $dob = $formData['dob'] ?? null;
-            $dtl = $formData['dtl'] ?? null;
-            $month = $formData['month'] ?? null;
-            $range = $formData['range'] ?? null;
-            $search = $formData['search'] ?? null;
-            $pno = $formData['pno'] ?? null;
-            $time = $formData['time'] ?? null;
-            $website = $formData['website'] ?? null;
-            $week = $formData['week'] ?? null;
-            $country = $formData['country'] ?? null;
-    
+            $fav_number = $this->test_input($formData['fav_number']) ?? null;
+            $fav_color = $this->test_input($formData['fav_color']) ?? null;
+            $dob = $this->test_input($formData['dob']) ?? null;
+            $dtl = $this->test_input($formData['dtl']) ?? null;
+            $month = $this->test_input($formData['month']) ?? null;
+            $range = $this->test_input($formData['range']) ?? null;
+            $search = $this->test_input($formData['search']) ?? null;
+            $pno = $this->test_input($formData['pno']) ?? null;
+            $time = $this->test_input($formData['time']) ?? null;
+            $website = $this->test_input($formData['website']) ?? null;
+            $week = $this->test_input($formData['week']) ?? null;
+            $country = $this->test_input($formData['country']) ?? null;
+            $editorcontent = $this->test_input($formData['editorContent']) ?? null; // Optional field
+
+
+
             // Handle image upload for profile picture
             $profile_pic = null;
             if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
                 $uploadDir = __DIR__ . '/../uploads/';
                 $profile_pic = uniqid() . '_' . basename($_FILES['profile_pic']['name']);
                 $uploadPath = $uploadDir . $profile_pic;
-    
+
                 if (!move_uploaded_file($_FILES['profile_pic']['tmp_name'], $uploadPath)) {
                     echo "Failed to upload profile picture.";
                     return;
                 }
             }
-    
+
             // Handle multiple file uploads for 'mfile'
             $mfile_paths = [];
             if (isset($_FILES['mfile']['name']) && is_array($_FILES['mfile']['name']) && count($_FILES['mfile']['name']) > 0) {
@@ -270,20 +282,20 @@ class UserController
                     if (!empty($fileTmpName)) {
                         $fileUniqueName = uniqid() . '___' . basename($fileName);
                         $uploadPath = $uploadDir . $fileUniqueName;
-    
+
                         if (move_uploaded_file($fileTmpName, $uploadPath)) {
                             $mfile_paths[] = $fileUniqueName; // Save uploaded file path
                         } else {
                             echo "Failed to upload one or more files.";
                             return;
                         }
-                    } 
+                    }
                 }
-            } 
-    
+            }
+
             // Convert uploaded file paths array into a comma-separated string for database storage
             $mfile_paths_string = implode(',', $mfile_paths);
-    
+
             // Ensure all required fields are filled
             if ($name && $email) {
                 $updateData = [
@@ -304,11 +316,12 @@ class UserController
                     'website' => $website,
                     'week' => $week,
                     'country' => $country,
-                    'mfile' => $mfile_paths_string // Directly store the string, no need for json_encode
+                    'mfile' => $mfile_paths_string, // Directly store the string, no need for json_encode
+                    'editorcontent' => $editorcontent
                 ];
-    
+
                 $isUpdated = $this->user->updateUser($userId, $updateData);
-    
+
                 if ($isUpdated) {
                     // Redirect to the showData.php page with userId
                     header("Location: showData.php?user_id=$userId");
@@ -321,5 +334,4 @@ class UserController
             }
         }
     }
-    
 }

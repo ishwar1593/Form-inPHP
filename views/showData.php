@@ -44,7 +44,7 @@ if ($userId) {
                 <?php } else { ?>
                     <p>No profile picture uploaded.</p>
                 <?php } ?>
-                
+
                 <!-- New fields -->
                 <p style="font-weight: bold;">Date time-local: <span style="font-weight: normal;"><?= htmlspecialchars($userData['dtl']) ?></span></p>
                 <p style="font-weight: bold;">Multiple Files:</p>
@@ -68,6 +68,12 @@ if ($userId) {
                 <p style="font-weight: bold;">Website: <a href="<?= $userData['website'] ?>" target="_blank" style="color: #007bff; text-decoration: none;"><?= $userData['website'] ?></a></p>
                 <p style="font-weight: bold;">Week: <span style="font-weight: normal;"><?= htmlspecialchars($userData['week']) ?></span></p>
                 <p style="font-weight: bold;">Country: <span style="font-weight: normal;"><?= htmlspecialchars($userData['country']) ?></span></p>
+                <p style="font-weight: bold;">Content: <span style="font-weight: normal;"><?= htmlspecialchars_decode($userData['editorcontent']) ?></span></p>
+                <p style="font-weight: bold;">Account status: <span style="font-weight: normal;"><?= $userData['isactive'] == 1 ? 'Active' : 'Inactive' ?></span></p>
+                <p style="font-weight: bold;">Created at : <span style="font-weight: normal;"><?= htmlspecialchars($userData['createdat']) ?></span></p>
+                <p style="font-weight: bold;">Updated at : <span style="font-weight: normal;"><?= htmlspecialchars($userData['updatedat']) ?></span></p>
+                <p style="font-weight: bold;">Deleted at : <span style="font-weight: normal;"><?= ($userData['deletedat'] == null ? "null" : $userData['deletedat']) ?></span></p>
+                <p style="font-weight: bold;">isDelete: <span style="font-weight: normal;"><?= $userData['isdelete'] == 1 ? 'true' : 'false' ?></span></p>
             </div>
         </body>
 

@@ -30,7 +30,6 @@ if (isset($_GET['user_id'])) {
         $mfiles = explode(',', $mfilesString);
 ?>
 
-?>
 
         <!DOCTYPE html>
         <html lang="en">
@@ -40,11 +39,49 @@ if (isset($_GET['user_id'])) {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Edit User Data</title>
             <link rel="stylesheet" href="/task1/assets/style.css">
+            <style>
+                #htmlEditor {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                }
+
+                .toolbar {
+                    display: flex;
+                    gap: 10px;
+                    margin-left: 20px;
+                    margin-bottom: 10px;
+                }
+
+                .toolbar button {
+                    padding: 5px 10px;
+                    cursor: pointer;
+                    border: 1px solid #ddd;
+                    background: #f9f9f9;
+                    font-size: 14px;
+                }
+
+                .toolbar button:hover {
+                    background: #eaeaea;
+                }
+
+                #editor {
+                    border: 1px solid #ddd;
+                    padding: 10px;
+                    height: 200px;
+                    overflow-y: auto;
+                }
+
+                #editor[contenteditable="true"] {
+                    outline: none;
+                }
+            </style>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.3/purify.min.js" integrity="sha512-Ll+TuDvrWDNNRnFFIM8dOiw7Go7dsHyxRp4RutiIFW/wm3DgDmCnRZow6AqbXnCbpWu93yM1O34q+4ggzGeXVA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
         </head>
 
         <body>
             <h2>Edit User Data</h2>
-            <form action="" method="POST" enctype="multipart/form-data">
+            <form action="" method="POST" enctype="multipart/form-data" id="userEditForm">
                 <input type="hidden" name="user_id" value="<?= htmlspecialchars($userId) ?>">
                 <label for="name">Name :</label>
                 <input type="text" name="name" id="name" value="<?= htmlspecialchars($userData['name'] ?? "") ?>">
@@ -160,8 +197,50 @@ if (isset($_GET['user_id'])) {
                 </select>
                 <br><br>
 
+                <!-- Html editor -->
+                <!-- Toolbar for Formatting Options -->
+                <div class="toolbar">
+                    <button type="button" onclick="execCmd('bold')"><b>B</b></button>
+                    <button type="button" onclick="execCmd('italic')"><i>I</i></button>
+                    <button type="button" onclick="execCmd('underline')"><u>U</u></button>
+                    <button type="button" onclick="execCmd('strikeThrough')">Strike</button>
+                    <button type="button" onclick="execCmd('insertOrderedList')">OL</button>
+                    <button type="button" onclick="execCmd('insertUnorderedList')">UL</button>
+                    <button type="button" onclick="execCmd('justifyLeft')">Left</button>
+                    <button type="button" onclick="execCmd('justifyCenter')">Center</button>
+                    <button type="button" onclick="execCmd('justifyRight')">Right</button>
+                    <button type="button" onclick="execCmd('removeFormat')">Clear</button>
+                </div>
+
+
+                <!-- Editable Content Area -->
+                <!-- Hidden input to store HTML editor content -->
+                <input type="hidden" name="editorContent" id="editorContent">
+                <div id="htmlEditor">
+                    <div id="editor" contenteditable="true" onfocus="if(this.innerText === 'Start typing here...') this.innerText = '';" onblur="if(this.innerText === '') this.innerText = 'Start typing here...';">
+                        <?= htmlspecialchars_decode($userData['editorcontent']) ?>
+                    </div>
+
+                </div>
+
+
                 <input type="submit" value="Update">
             </form>
+
+
+            <script>
+                // Function to execute commands (e.g., bold, italic)
+                function execCmd(command, value = null) {
+                    document.execCommand(command, false, value);
+                }
+
+                // Capture the editor content before form submission
+                document.getElementById("userEditForm").addEventListener("submit", function(event) {
+                    var editorContent = DOMPurify.sanitize(document.getElementById("editor").innerHTML);
+                    // alert(editorContent);
+                    document.getElementById("editorContent").value = editorContent;
+                });
+            </script>
         </body>
 
         </html>
