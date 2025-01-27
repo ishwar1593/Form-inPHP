@@ -43,10 +43,8 @@ class Database
                             password VARCHAR(255) NOT NULL,
                             fav_number INT,
                             fav_color VARCHAR(20),
-                            profile_pic VARCHAR(255),
                             dob DATE,
                             dtl TIMESTAMP,
-                            mfile VARCHAR(255),
                             month VARCHAR(255),
                             range INT,
                             search VARCHAR(255),
@@ -60,7 +58,22 @@ class Database
                             createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- to track record creation time
                             updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- to track last update time
                             deletedAt TIMESTAMP,                            -- to store deletion time (if soft deleted)
-                            isDelete BOOLEAN DEFAULT FALSE);";
+                            isDelete BOOLEAN DEFAULT FALSE
+                            );";
+
+        return $this->pdo->exec($tableQuery);
+    }
+    public function createImgsTable()
+    {
+        $tableQuery = "CREATE TABLE IF NOT EXISTS images (
+                            id SERIAL PRIMARY KEY,                      -- Primary key for the images table
+                            img_type VARCHAR(50) NOT NULL,             -- To store the type of image (e.g., profile_pic, m_file)
+                            image_path VARCHAR(255) NOT NULL,          -- To store the image path
+                            deleted_at TIMESTAMP,                      -- To store deletion time for soft deletes
+                            isdelete_img BOOLEAN DEFAULT FALSE,           -- To mark whether the record is deleted (soft delete)
+                            user_id INT NOT NULL,                      -- Foreign key referencing the users table
+                            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE -- Ensures referential integrity
+                        );";
 
         return $this->pdo->exec($tableQuery);
     }
