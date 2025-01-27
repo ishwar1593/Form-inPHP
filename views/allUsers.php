@@ -118,9 +118,11 @@ if ($allUsers) {
                 const toggleSwitches = document.querySelectorAll('.toggle-status');
 
                 toggleSwitches.forEach(function(toggle) {
-                    toggle.addEventListener('change', function() {
+                    toggle.addEventListener('click', function(e) {
+                        e.preventDefault(); // Prevent immediate toggle behavior
+
                         const userId = this.getAttribute('data-id'); // Get the user ID from data-id
-                        const isActive = this.checked ? 1 : 0; // Check if the switch is checked (active) or not
+                        const isActive = this.checked ? 1 : 0; // Desired new state of the toggle
 
                         // Create a FormData object to send data
                         const formData = new FormData();
@@ -129,24 +131,25 @@ if ($allUsers) {
 
                         // Create a new XMLHttpRequest (AJAX request)
                         const xhr = new XMLHttpRequest();
-                        xhr.open('POST', '/task1/controllers/update_status.php', true); // Correct the path to your PHP file
+                        xhr.open('POST', '/task1/controllers/update_status.php', true);
+
+                        const toggleElement = this; // Save the current toggle element reference
 
                         xhr.onload = function() {
                             if (xhr.status === 200) {
-                                // Optionally handle success
+                                // On success, allow the toggle to reflect the new state
+                                toggleElement.checked = isActive === 1;
                                 console.log('Status updated successfully');
                             } else {
-                                // Handle error
+                                // On failure, show an error message
                                 console.error('Error updating status:', xhr.statusText);
-                                // Optionally revert the toggle if the update failed
-                                toggle.checked = !isActive;
+                                alert('Failed to update status. Please try again.');
                             }
                         };
 
                         xhr.onerror = function() {
                             console.error('Error updating status:', xhr.statusText);
-                            // Optionally revert the toggle if the update failed
-                            toggle.checked = !isActive;
+                            alert('Failed to update status. Please check your connection.');
                         };
 
                         // Send the request with the form data
