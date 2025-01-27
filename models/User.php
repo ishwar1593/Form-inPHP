@@ -9,6 +9,7 @@ class User
     {
         $this->db = new Database();
         $this->db->createUsersTable();
+        $this->db->createImgsTable();
     }
 
     // Create new user
