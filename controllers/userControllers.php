@@ -261,7 +261,7 @@ class UserController
 
 
             // Handle image upload for profile picture
-            $profile_pic = null;
+            $profile_pic = $this->user->showUser($userId)['profile_pic'];
             if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
                 $uploadDir = __DIR__ . '/../uploads/';
                 $profile_pic = uniqid() . '_' . basename($_FILES['profile_pic']['name']);
@@ -274,7 +274,7 @@ class UserController
             }
 
             // Handle multiple file uploads for 'mfile'
-            $mfile_paths = [];
+            $mfile_paths = $this->user->showUser($userId)['mfile'] ? explode(',', $this->user->showUser($userId)['mfile']) : [];
             if (isset($_FILES['mfile']['name']) && is_array($_FILES['mfile']['name']) && count($_FILES['mfile']['name']) > 0) {
                 $uploadDir = __DIR__ . '/../uploads/';
                 foreach ($_FILES['mfile']['name'] as $key => $fileName) {
