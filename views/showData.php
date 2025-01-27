@@ -15,10 +15,26 @@ if ($userId) {
 
     if ($userData) {
         // Remove leading and trailing quotes, if present
-        $mfilesString = trim($userData['mfile'], '"');
+        // echo '<pre>';
+        // print_r($userData);
+        // echo '</pre>';
+        // Decode image_paths and image_types as arrays (remove the curly braces first)
+        $imageTypes = explode(',', trim($userData['image_types'], '{}')); // Convert to array
+        $imagePaths = explode(',', trim($userData['image_paths'], '{}')); // Convert to array
+        // Extract paths where the type is 'm_file'
+        $mFilePaths = [];
+        $profilePath = [];
 
-        // Split the string into an array of file names
-        $mfiles = explode(',', $mfilesString);
+        foreach ($imageTypes as $index => $type) {
+            if ($type == 'm_file') {
+                $mFilePaths[] = $imagePaths[$index];
+            } else {
+                $profilePath[] = $imagePaths[$index];
+            }
+        }
+
+        // Display the extracted paths
+
 ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -39,26 +55,32 @@ if ($userId) {
                 <p style="font-weight: bold;">Favorite Color: <span style="font-weight: normal; background-color: <?= htmlspecialchars($userData['fav_color']) ?>; padding: 0 10px;">&nbsp;</span></p>
                 <p style="font-weight: bold;">Date of Birth: <span style="font-weight: normal;"><?= htmlspecialchars($userData['dob']) ?></span></p>
                 <p style="font-weight: bold;">Profile Picture:</p>
-                <?php if ($userData['profile_pic']) { ?>
-                    <img src="../uploads/<?= htmlspecialchars($userData['profile_pic']) ?>" alt="Profile Picture" style="max-width: 200px; display: block; margin-bottom: 20px;">
-                <?php } else { ?>
-                    <p>No profile picture uploaded.</p>
-                <?php } ?>
+                <?php
+                // Loop over the image paths and check if any of them is a profile picture
+                foreach ($profilePath as $profile) {
 
+                    if ($imageTypes[$index] == 'profile_pic') { ?>
+                        <img src="../uploads/<?= htmlspecialchars($profile) ?>" alt="Profile Picture" style="max-width: 200px; display: block; margin-bottom: 20px;">
+                <?php
+
+                    } else {
+                        echo "<p>No profile picture uploaded.</p>";
+                    }
+                }
+                ?>
                 <!-- New fields -->
                 <p style="font-weight: bold;">Date time-local: <span style="font-weight: normal;"><?= htmlspecialchars($userData['dtl']) ?></span></p>
                 <p style="font-weight: bold;">Multiple Files:</p>
                 <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    <?php foreach ($mfiles as $file): ?>
-                        <?php if (file_exists("../uploads/" . htmlspecialchars($file))): ?>
-                            <div style="text-align: center;">
-                                <img src="../uploads/<?= htmlspecialchars($file) ?>" alt="<?= htmlspecialchars($file) ?>" style="max-width: 150px; max-height: 150px; object-fit: cover; border: 1px solid #ccc; margin-bottom: 10px;">
-                            </div>
-                        <?php else: ?>
-                            <p>File not found: <?= htmlspecialchars($file) ?></p>
-                        <?php endif; ?>
-                    <?php endforeach; ?>
+                    <?php foreach ($mFilePaths as $index => $mfile):
+                    ?>
+                        <div style="text-align: center;">
+                            <img src="../uploads/<?= htmlspecialchars($mfile) ?>" alt="<?= htmlspecialchars($mfile) ?>" style="max-width: 150px; max-height: 150px; object-fit: cover; border: 1px solid #ccc; margin-bottom: 10px;">
+                        </div>
+                    <?php
+                    endforeach; ?>
                 </div>
+
 
                 <p style="font-weight: bold;">Month: <span style="font-weight: normal;"><?= htmlspecialchars($userData['month']) ?></span></p>
                 <p style="font-weight: bold;">Volume (Range 0 to 100): <span style="font-weight: normal;"><?= $userData['range'] ?></span></p>

@@ -63,6 +63,7 @@ class Database
 
         return $this->pdo->exec($tableQuery);
     }
+
     public function createImgsTable()
     {
         $tableQuery = "CREATE TABLE IF NOT EXISTS images (
@@ -70,7 +71,7 @@ class Database
                             img_type VARCHAR(50) NOT NULL,             -- To store the type of image (e.g., profile_pic, m_file)
                             image_path VARCHAR(255) NOT NULL,          -- To store the image path
                             deleted_at TIMESTAMP,                      -- To store deletion time for soft deletes
-                            isdelete_img BOOLEAN DEFAULT FALSE,           -- To mark whether the record is deleted (soft delete)
+                            is_deleted_img BOOLEAN DEFAULT FALSE,           -- To mark whether the record is deleted (soft delete)
                             user_id INT NOT NULL,                      -- Foreign key referencing the users table
                             FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE -- Ensures referential integrity
                         );";

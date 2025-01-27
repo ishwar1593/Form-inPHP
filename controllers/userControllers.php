@@ -194,9 +194,6 @@ class UserController
             }
 
 
-            // Convert uploaded file paths array into a comma-separated string for database storage
-            $mfile_paths_string = implode(',', $mfile_paths);
-
             // Ensure all required fields are filled
             if ($this->formData['name'] && $this->formData['email'] && $this->formData['password']) {
                 $hashedPassword = password_hash($this->formData['password'], PASSWORD_DEFAULT);
@@ -211,7 +208,7 @@ class UserController
                     $profile_pic,
                     $this->formData['dob'],
                     $this->formData['dtl'],      // New field
-                    json_encode($mfile_paths_string),
+                    $mfile_paths,
                     $this->formData['month'],    // New field
                     $this->formData['range'],
                     $this->formData['search'],

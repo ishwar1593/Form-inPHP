@@ -15,8 +15,8 @@ class User
     // Create new user
     public function createUser($name, $email, $gender, $hobbies, $password, $fav_number, $fav_color, $profile_pic, $dob, $dtl, $mfile, $month, $range, $search, $pno, $time, $website, $week, $country, $editorContent)
     {
-        $stmt = $this->db->connect()->prepare("INSERT INTO users (name, email, gender, hobbies, password, fav_number, fav_color, profile_pic, dob,dtl,mfile,month,range,search,pno,time,website,week,country,editorContent) 
-        VALUES (:name, :email, :gender, :hobbies, :password, :fav_number, :fav_color, :profile_pic, :dob,:dtl,:mfile,:month,:range,:search,:pno,:time,:website,:week,:country,:editorContent)
+        $stmt = $this->db->connect()->prepare("INSERT INTO users (name, email, gender, hobbies, password, fav_number, fav_color, dob, dtl, month,range,search,pno,time,website,week,country,editorContent) 
+        VALUES (:name, :email, :gender, :hobbies, :password, :fav_number, :fav_color, :dob,:dtl,:month,:range,:search,:pno,:time,:website,:week,:country,:editorContent)
         RETURNING id");
 
         $castedRange = (int) $range;
@@ -30,11 +30,9 @@ class User
         $stmt->bindParam(':password', $password);
         $stmt->bindParam(':fav_number', $fav_number);
         $stmt->bindParam(':fav_color', $fav_color);
-        $stmt->bindParam(':profile_pic', $profile_pic);
         $stmt->bindParam(':dob', $dob);
         // new fields
         $stmt->bindParam(':dtl', $dtl);
-        $stmt->bindParam(':mfile', $mfile);
         $stmt->bindParam(':month', $month);
         $stmt->bindParam(':range', $castedRange);
         $stmt->bindParam(':search', $search);
@@ -46,11 +44,40 @@ class User
         $stmt->bindParam(':editorContent', $editorContent);
 
 
-        // Execute the query and check for success
         if ($stmt->execute()) {
-            // Fetch the inserted ID using RETURNING
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $row ? $row['id'] : false;
+            $userId = $row ? $row['id'] : false;
+
+            // If the user is successfully created, store the images in the images table
+            if ($userId) {
+                $images = [];
+
+                // Add profile picture to the images array
+                if ($profile_pic) {
+                    $images[] = ['img_type' => 'profile_pic', 'image_path' => $profile_pic];
+                }
+
+                // Add multiple files to the images array
+                if (is_array($mfile)) {
+                    foreach ($mfile as $file) {
+                        $images[] = ['img_type' => 'm_file', 'image_path' => $file];
+                    }
+                }
+
+
+                // Insert all images into the images table
+                foreach ($images as $image) {
+                    $stmtImage = $this->db->connect()->prepare("INSERT INTO images (user_id, img_type, image_path) VALUES (:user_id, :img_type, :image_path)");
+                    $stmtImage->bindParam(':user_id', $userId);
+                    $stmtImage->bindParam(':img_type', $image['img_type']);
+                    $stmtImage->bindParam(':image_path', $image['image_path']);
+
+                    if (!$stmtImage->execute()) {
+                        return false; // If any image insertion fails
+                    }
+                }
+                return $userId; // Return the user ID if everything is successful
+            }
         } else {
             return false;
         }
@@ -60,16 +87,24 @@ class User
     public function showUser($userId)
     {
         try {
-            $stmt = $this->db->connect()->prepare("SELECT * FROM users WHERE id = :id AND isdelete = false");
+            $stmt = $this->db->connect()->prepare("
+               SELECT users.*, 
+       array_agg(images.img_type ORDER BY images.img_type) AS image_types,
+       array_agg(images.image_path ORDER BY images.img_type) AS image_paths
+FROM users
+LEFT JOIN images ON users.id = images.user_id
+WHERE users.id = :id AND users.isdelete = false
+GROUP BY users.id;");
             $stmt->bindParam(':id', $userId);
             $stmt->execute();
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             // Log the error or handle it as needed
-            error_log("Error to fetch user data : " . $e->getMessage());
+            error_log("Error fetching user data: " . $e->getMessage());
             return false;
         }
     }
+
 
     // Show all users
     public function showAllUsers()
