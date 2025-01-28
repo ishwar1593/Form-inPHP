@@ -256,9 +256,24 @@ class UserController
             $editorcontent = $this->test_input($formData['editorContent']) ?? null; // Optional field
 
 
+            // existing image
+            // Decode image_paths and image_types as arrays (remove the curly braces first)
+            $imageTypes = explode(',', trim($this->user->showUser($userId)['image_types'], '{}')); // Convert to array
+            $imagePaths = explode(',', trim($this->user->showUser($userId)['image_paths'], '{}')); // Convert to array
+            // Extract paths where the type is 'm_file'
+            $mFilePaths = [];
+            $profilePath = [];
+
+            foreach ($imageTypes as $index => $type) {
+                if ($type == 'm_file') {
+                    $mFilePaths[] = $imagePaths[$index];
+                } else {
+                    $profilePath[] = $imagePaths[$index];
+                }
+            }
 
             // Handle image upload for profile picture
-            $profile_pic = $this->user->showUser($userId)['profile_pic'];
+            $profile_pic = null;
             if (isset($_FILES['profile_pic']) && $_FILES['profile_pic']['error'] === 0) {
                 $uploadDir = __DIR__ . '/../uploads/';
                 $profile_pic = uniqid() . '_' . basename($_FILES['profile_pic']['name']);
@@ -271,7 +286,7 @@ class UserController
             }
 
             // Handle multiple file uploads for 'mfile'
-            $mfile_paths = $this->user->showUser($userId)['mfile'] ? explode(',', $this->user->showUser($userId)['mfile']) : [];
+            $mfile_paths = [];
             if (isset($_FILES['mfile']['name']) && is_array($_FILES['mfile']['name']) && count($_FILES['mfile']['name']) > 0) {
                 $uploadDir = __DIR__ . '/../uploads/';
                 foreach ($_FILES['mfile']['name'] as $key => $fileName) {

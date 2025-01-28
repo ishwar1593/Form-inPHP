@@ -89,7 +89,7 @@
 
         <label for="profile_pic">Profile Picture :</label>
         <input type="file" name="profile_pic" id="profile_pic">
-        <span class="error">* <?php echo $errors["nameErr"] ?? ''; ?></span>
+        <span class="error">* <?php echo $errors["profile_picErr"] ?? ''; ?></span>
         <br><br>
 
         <label for="dob">Date of Birth :</label>

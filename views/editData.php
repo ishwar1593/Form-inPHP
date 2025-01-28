@@ -24,10 +24,24 @@ if (isset($_GET['user_id'])) {
     if ($userData) {
         // set data in user field}
         $userData['hobbies'] = explode(',', $userData['hobbies']);
-        $mfilesString = trim($userData['mfile'], '"');
 
-        // Split the string into an array of file names
-        $mfiles = explode(',', $mfilesString);
+        // echo '<pre>';
+        // print_r($userData);
+        // echo '</pre>';
+        // Decode image_paths and image_types as arrays (remove the curly braces first)
+        $imageTypes = explode(',', trim($userData['image_types'], '{}')); // Convert to array
+        $imagePaths = explode(',', trim($userData['image_paths'], '{}')); // Convert to array
+        // Extract paths where the type is 'm_file'
+        $mFilePaths = [];
+        $profilePath = [];
+
+        foreach ($imageTypes as $index => $type) {
+            if ($type == 'm_file') {
+                $mFilePaths[] = $imagePaths[$index];
+            } else {
+                $profilePath[] = $imagePaths[$index];
+            }
+        }
 ?>
 
 
@@ -121,16 +135,39 @@ if (isset($_GET['user_id'])) {
                 <input type="color" name="fav_color" id="fav_color" value="<?= htmlspecialchars($userData['fav_color'] ?? "#000000") ?>" required>
                 <span class="error">* <?php echo $errors["nameErr"] ?? ''; ?></span>
                 <br><br>
+                <p style="font-weight: bold;">Profile Picture:</p>
+                <div id="profile-picture-container">
+                    <?php if (empty($profilePath)) { ?>
+                        <input type="file" name="profile_pic" id="profile_pic">
+                        <span class="error">* <?php echo $errors["profile_picErr"] ?? ''; ?></span>
+                        <br><br>
+                    <?php } else { ?>
+                        <?php
+                        // Loop over the image paths and check if any of them is a profile picture
+                        foreach ($profilePath as $profile) { ?>
+                            <?php if ($imageTypes[$index] == 'profile_pic') { ?>
+                                <div id="<?= htmlspecialchars($profile) ?>">
+                                    <img src="../uploads/<?= htmlspecialchars($profile) ?>" alt="Profile Picture" style="max-width: 200px; display: block; margin-bottom: 20px;">
 
-                <label for="profile_pic">Profile Picture :</label>
-                <input type="file" name="profile_pic" id="profile_pic">
-                <img src="../uploads/<?= htmlspecialchars($userData['profile_pic'] ?? "default.png") ?>" alt="profile pic">
-                <span class="error">* <?php echo $errors["nameErr"] ?? ''; ?></span>
-                <br><br>
+                                    <button data-image-path="<?= htmlspecialchars($profile) ?>" type="submit" style="padding: 8px 12px; background-color: red; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                        Remove
+                                    </button>
+                                </div>
+                            <?php
+
+                            } else { ?>
+                                <input type="file" name="profile_pic" id="profile_pic">
+                                <span class="error">* <?php echo $errors["profile_picErr"] ?? ''; ?></span>;
+                                <br><br>
+                    <?php }
+                        }
+                    }
+                    ?>
+                </div>
 
                 <label for="dob">Date of Birth :</label>
                 <input type="date" name="dob" id="dob" value="<?= htmlspecialchars($userData['dob']) ?>" required>
-                <span class="error">* <?php echo $errors["nameErr"] ?? ''; ?></span>
+                <span class="error">* <?php echo $errors["dobErr"] ?? ''; ?></span>
                 <br><br>
 
                 <!-- extra fields -->
@@ -139,21 +176,18 @@ if (isset($_GET['user_id'])) {
                 <span class="error">* <?php echo $errors["dtlErr"] ?? ''; ?></span>
                 <br><br>
 
-                <label for="mfile">Multiple Files :</label>
-                <input type="file" multiple name="mfile[]" id="mfile">
-                <span class="error">* <?php echo $errors["mfileErr"] ?? ''; ?></span>
-                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-                    <?php foreach ($mfiles as $file): ?>
-                        <?php if (file_exists("../uploads/" . htmlspecialchars($file))): ?>
-                            <div style="text-align: center;">
-                                <img src="../uploads/<?= htmlspecialchars($file) ?>" alt="<?= htmlspecialchars($file) ?>" style="max-width: 150px; max-height: 150px; object-fit: cover; border: 1px solid #ccc; margin-bottom: 10px;">
-                            </div>
-                        <?php else: ?>
-                            <p>File not found: <?= htmlspecialchars($file) ?></p>
-                        <?php endif; ?>
+                <p style="font-weight: bold;">Multiple Files:</p>
+                <div id="multiple-files-container" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <?php foreach ($mFilePaths as $index => $mfile): ?>
+                        <div id="multiple-file-<?= htmlspecialchars($mfile) ?>" style="text-align: center;">
+                            <img class="remove-image-btn" src="../uploads/<?= htmlspecialchars($mfile) ?>" alt="<?= htmlspecialchars($mfile) ?>" style="max-width: 150px; max-height: 150px; object-fit: cover; border: 1px solid #ccc; margin-bottom: 10px;">
+                            <button data-image-path="<?= htmlspecialchars($mfile) ?>" type="button" class="remove-multiple-file" style="padding: 8px 12px; background-color: red; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                                Remove
+                            </button>
+                        </div>
                     <?php endforeach; ?>
                 </div>
-                <br><br>
+
 
                 <label for="month">Month :</label>
                 <input type="month" name="month" id="month" value="<?= $userData['month'] ?>">
@@ -239,6 +273,75 @@ if (isset($_GET['user_id'])) {
                     var editorContent = DOMPurify.sanitize(document.getElementById("editor").innerHTML);
                     // alert(editorContent);
                     document.getElementById("editorContent").value = editorContent;
+                });
+
+                // Ajax for remov image
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Event listener for remove button
+                    const removeButtons = document.querySelectorAll('button[data-image-path]');
+                    removeButtons.forEach(button => {
+                        button.addEventListener('click', function(event) {
+                            event.preventDefault();
+
+                            const imagePath = button.getAttribute('data-image-path');
+                            var container = document.getElementById('profile-picture-container');
+
+                            // Send AJAX request to remove the image
+                            const xhr = new XMLHttpRequest();
+                            xhr.open('POST', '/task1/controllers/delete_image.php', true); // Update the PHP file for image removal
+                            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                            xhr.onload = function() {
+                                if (xhr.status === 200) {
+                                    // On success, remove the image element from the DOM
+                                    const imageDiv = document.getElementById(imagePath);
+                                    if (imageDiv) {
+                                        imageDiv.remove();
+                                    }
+
+                                    // Check if there are no more profile pictures and show the file input
+                                    if (container.children.length === 0) {
+                                        container.innerHTML = `
+                                                    <input type="file" name="profile_pic" id="profile_pic">
+                                                    <span class="error">* <?php echo $errors["profile_picErr"] ?? ''; ?></span>
+                                                    <br><br>
+                                                `;
+                                    }
+
+                                } else {
+                                    alert('Error removing the image');
+                                }
+                            };
+                            xhr.send('imagePath=' + encodeURIComponent(imagePath));
+                        });
+                    });
+                });
+
+                // mlti file
+
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.querySelectorAll('.remove-multiple-file').forEach(function(button) {
+                        button.addEventListener('click', function() {
+                            var imagePath = this.getAttribute('data-image-path');
+                            var container = document.getElementById('multiple-files-container');
+
+                            // Perform AJAX request to remove the image
+                            var xhr = new XMLHttpRequest();
+                            xhr.open('POST', '/task1/controllers/delete_image.php', true);
+                            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                            xhr.onreadystatechange = function() {
+                                if (xhr.readyState === 4 && xhr.status === 200) {
+                                    // Remove the image element from the DOM
+                                    var fileDiv = document.getElementById('multiple-file-' + imagePath);
+                                    if (fileDiv) {
+                                        fileDiv.remove();
+                                    }
+                                } else if (xhr.readyState === 4) {
+                                    alert('Error removing the image');
+                                }
+                            };
+                            xhr.send('image_path=' + encodeURIComponent(imagePath));
+                        });
+                    });
                 });
             </script>
         </body>
