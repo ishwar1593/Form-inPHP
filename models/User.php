@@ -151,7 +151,8 @@ class User
 
             if ($stmt->execute()) {
                 $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                $userId  = $id;
+                // $userId  = $id;
+                $userId  = $row ? $row['id'] : false;
 
                 // If the user is successfully created, store the images in the images table
 
@@ -218,12 +219,46 @@ class User
     public function deleteImage($image_path)
     {
         try {
-            $stmt = $this->db->connect()->prepare("UPDATE images SET is_deleted_img = true WHERE image_path = :image_path");
+            $stmt = $this->db->connect()->prepare("UPDATE images SET is_deleted_img = true,deleted_at = CURRENT_TIMESTAMP WHERE image_path = :image_path");
             $stmt->bindParam(':image_path', $image_path);
             return $stmt->execute();
         } catch (PDOException $e) {
             // Log the error or handle it as needed
             error_log("Error soft deleting image: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // Search
+    public function searchUsers($query)
+    {
+        try {
+            $searchQuery = "%" . $query . "%";
+            $stmt = $this->db->connect()->prepare("
+            SELECT * FROM users
+            WHERE (id::text LIKE :query OR name LIKE :query OR email LIKE :query)
+            AND isdelete = false
+        ");
+            $stmt->bindParam(':query', $searchQuery);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException $e) {
+            // Log the error or handle it as needed
+            error_log("Error searching users: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function getUserByEmail($email)
+    {
+        try {
+            $stmt = $this->db->connect()->prepare("SELECT * FROM users WHERE email = :email AND isdelete = false");
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
+            return $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            // Log the error or handle it as needed
+            error_log("Error fetching user by email: " . $e->getMessage());
             return false;
         }
     }

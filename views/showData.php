@@ -1,4 +1,11 @@
 <?php
+session_start();
+
+// Check if the user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
 include_once __DIR__ . '/../models/User.php';
 
 $user = new User();

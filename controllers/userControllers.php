@@ -222,7 +222,7 @@ class UserController
 
                 if ($userId) {
                     // Redirect to the showData.php page with userId
-                    header("Location: views/showData.php?user_id=$userId");
+                    header("Location: showData.php?user_id=$userId");
                     exit;
                 } else {
                     $this->errors["formErr"] = "Failed to create user.";

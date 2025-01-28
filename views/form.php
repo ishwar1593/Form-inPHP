@@ -1,3 +1,15 @@
+<?php
+include_once __DIR__ . '/../controllers/userControllers.php';
+
+$userController = new UserController();
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $userController->handleFormSubmit($_POST, $_FILES);
+}
+$errors = $userController->errors;
+$formData = $userController->formData;
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -45,6 +57,7 @@
 </head>
 
 <body>
+    <?php include "./navbar.php"; ?>
     <h1>User Registration</h1>
     <form action="" method="POST" enctype="multipart/form-data" id="userForm">
         <label for="name">Name :</label>
@@ -191,8 +204,6 @@
             var editorContent = DOMPurify.sanitize(document.getElementById("editor").innerHTML);
             document.getElementById("editorContent").value = editorContent;
         });
-
-
     </script>
 </body>
 

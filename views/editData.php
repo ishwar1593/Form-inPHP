@@ -1,4 +1,12 @@
 <?php
+session_start();
+
+// Check if the user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit;
+}
+
 // Assuming you have a database connection file
 include_once __DIR__ . '/../models/User.php';
 include_once __DIR__ . '/../controllers/userControllers.php';
